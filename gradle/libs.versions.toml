@@ -1,0 +1,80 @@
+##################################################################################################################
+[versions]
+kotlin = "1.8.10"
+kotlinx-coroutines = "1.6.4"
+shadow = "7.1.2"
+beryx-runtime = "1.13.0"
+
+# audio
+jna-lib = "5.12.1"
+jaudiolibs-jnajack = "1.4.0"
+jaudiolibs-audioservers-jack = "2.0.0"
+
+# graphics
+# https://github.com/kotlin-graphics/imgui/issues/183 - see https://github.com/kotlin-graphics/mary
+imgui = "1.79+05"
+lwjgl = "3.3.2"
+joml = "1.10.5"
+gln = "0.5.31"
+glm = "0.9.9.1-5"
+uno = "0.7.9+52"
+
+# logging
+julToSlf4j = "2.0.7"
+kotlin-logging = "3.0.5"
+logback-classic = "1.4.6"
+logback-encoder = "7.3"
+
+# testing
+assertj = "3.24.2"
+junit-jupiter = "5.9.2"
+mockk = "1.13.4"
+
+##################################################################################################################
+[plugins]
+kotlin-jvm = { id = "org.jetbrains.kotlin.jvm", version.ref = "kotlin" }
+kotlin-serialization = { id = "org.jetbrains.kotlin.plugin.serialization", version.ref = "kotlin" }
+shadow = { id = "com.github.johnrengelman.shadow", version.ref = "shadow" }
+runtime = { id = "org.beryx.runtime", version.ref = "beryx-runtime" }
+
+##################################################################################################################
+[libraries]
+# boms
+bom-lwjgl =  { module = "org.lwjgl:lwjgl-bom", version.ref = "lwjgl" }
+
+# libs
+jna-lib = { module = "net.java.dev.jna:jna", version.ref = "jna-lib" }
+jna-jnajack = { module = "org.jaudiolibs:jnajack", version.ref = "jaudiolibs-jnajack" }
+jna-audioservers-jack = { module = "org.jaudiolibs:audioservers-jack", version.ref = "jaudiolibs-audioservers-jack" }
+
+gfx-imgui-core = { module = "kotlin.graphics:imgui-core", version.ref = "imgui" }
+gfx-imgui-gl = { module = "kotlin.graphics:imgui-gl", version.ref = "imgui" }
+gfx-imgui-glfw = { module = "kotlin.graphics:imgui-glfw", version.ref = "imgui" }
+
+gfx-lwjgl-core = { module = "org.lwjgl:lwjgl" }
+gfx-lwjgl-glfw = { module = "org.lwjgl:lwjgl-glfw" }
+gfx-lwjgl-nanovg = { module = "org.lwjgl:lwjgl-nanovg" }
+gfx-lwjgl-opengl = { module = "org.lwjgl:lwjgl-opengl" }
+gfx-lwjgl-par = { module = "org.lwjgl:lwjgl-par" }
+gfx-lwjgl-stb = { module = "org.lwjgl:lwjgl-stb" }
+gfx-lwjgl-jemalloc = { module = "org.lwjgl:lwjgl-jemalloc" }
+
+gfx-kotlin-graphics-gln = { module = "kotlin.graphics:gln", version.ref = "gln" }
+gfx-kotlin-graphics-glm = { module = "kotlin.graphics:glm", version.ref = "glm" }
+gfx-kotlin-graphics-unocore = { module = "kotlin.graphics:uno-core", version.ref = "uno" }
+gfx-joml = { module = "org.joml:joml", version.ref = "joml" }
+
+
+# logging
+kotlin-logging = { module = "io.github.microutils:kotlin-logging", version.ref = "kotlin-logging" }
+logging-logback-classic = { module = "ch.qos.logback:logback-classic", version.ref = "logback-classic" }
+logging-jul2slf4j = { module = "org.slf4j:jul-to-slf4j", version.ref = "julToSlf4j" }
+logging-logstash = { module = "net.logstash.logback:logstash-logback-encoder", version.ref = "logback-encoder" }
+
+# testing
+kotlinx-coroutines = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-test", version.ref = "kotlinx-coroutines" }
+jupiter-engine = { module = "org.junit.jupiter:junit-jupiter-engine", version.ref = "junit-jupiter" }
+jupiter-api = { module = "org.junit.jupiter:junit-jupiter-api", version.ref = "junit-jupiter" }
+jupiter-params = { module = "org.junit.jupiter:junit-jupiter-params", version.ref = "junit-jupiter" }
+assertj = { module = "org.assertj:assertj-core", version.ref = "assertj" }
+mockk = { module = "io.mockk:mockk", version.ref = "mockk" }
