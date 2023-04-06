@@ -1,13 +1,10 @@
 package vis
 
-import engine.LogicUpdater
+import engine.App
+import engine.WindowRefreshCallbackHandler
 import engine.MouseInput
 import engine.Window
-import glm_.vec4.Vec4
-import gln.glClearColor
-import gln.glViewport
 import imgui.ImGui
-import imgui.font.Font
 import java.util.EnumSet
 import org.jaudiolibs.jnajack.Jack
 import org.jaudiolibs.jnajack.JackBufferSizeCallback
@@ -20,13 +17,11 @@ import org.jaudiolibs.jnajack.JackSampleRateCallback
 import org.jaudiolibs.jnajack.JackShutdownCallback
 import org.jaudiolibs.jnajack.JackXrunCallback
 import org.lwjgl.glfw.GLFW
-import org.lwjgl.opengl.GL11
-import org.lwjgl.opengl.GL11C
 
-class JackUpdater(
+class JackConnectionsApp(
     private val jack: Jack,
     private val client: JackClient
-): LogicUpdater {
+): App, WindowRefreshCallbackHandler {
     private val bufferSizeCallback = BufferSizeCallback()
     private val sampleRateCallback = SampeRateCallback()
     private val xRunCallback = XRunCallback()
@@ -34,45 +29,10 @@ class JackUpdater(
     private val portConnectCallback = PortConnectCallback()
     private val onShutdownCallback = OnShutdownCallback()
 
-    lateinit var sysDefault: Font
-    lateinit var ubuntuFont: Font
-    private val clearColor = Vec4(0.45f, 0.55f, 0.6f, 1f)
-
     var counter: Int = 0
 
     override fun init(window: Window) {
-        with(ImGui) {
-            sysDefault = io.fonts.addFontDefault()
-            ubuntuFont = io.fonts.addFontFromFileTTF("fonts/UbuntuMono-R.ttf", 18.0f) ?: sysDefault
-        }
-
-//        GLFW.glfwSetWindowRefreshCallback(window.windowHandle) {
-//            println("window refresh cb with wh: $it, windowHandle: ${window.windowHandle}")
-//            GL11C.glViewport(0, 0, window.width, window.height)
-//            render(window)
-//        }
-//
-//        GLFW.glfwSetWindowSizeCallback(window.windowHandle) { wh, w, h ->
-//            println("window size cb: $w, $h")
-//            window.width = w
-//            window.height = h
-//            window.isResized = true
-//            GL11C.glViewport(0, 0, window.width, window.height)
-//            render(window)
-//        }
-//
-//        GLFW.glfwSetFramebufferSizeCallback(window.windowHandle) { wh, w, h ->
-//            println("window fb size cb: $w, $h")
-//            window.width = w
-//            window.height = h
-//            window.isResized = true
-//            GL11C.glViewport(0, 0, window.width, window.height)
-//            render(window)
-//        }
-//
-//        GLFW.glfwSetWindowPosCallback(window.windowHandle) { wh, xp, yp ->
-//            println("window pos cb: $xp, $yp")
-//        }
+        window.windowRefreshCallback = this
 
         initCallbacks()
         initPorts()
@@ -82,35 +42,27 @@ class JackUpdater(
     override fun input(window: Window, mouseInput: MouseInput) {
     }
 
-    override fun update(interval: Float, mouseInput: MouseInput, window: Window) {
+    override fun update(interval: Float, window: Window, mouseInput: MouseInput) {
     }
 
+    // The main render for the window of all connections.
     override fun render(window: Window) {
         window.implGl3.newFrame()
         window.implGlfw.newFrame()
+
+        // Build all the connections from the captured data structure
         ImGui.run {
             newFrame()
-            pushFont(ubuntuFont)
+            pushFont(window.ubuntuFont)
             begin("A UI!!")
             text("Hello, fish %d", counter++)
             button("Push me if you dare")
             end()
         }
+
+        window.clear()
         ImGui.render()
-
-        clear(window)
         window.implGl3.renderDrawData(ImGui.drawData!!)
-
-//        GLFW.glfwSwapBuffers(window.windowHandle)
-    }
-
-    private fun clear(window: Window) {
-        glClearColor(clearColor)
-        GL11C.glClear(GL11.GL_COLOR_BUFFER_BIT or GL11.GL_DEPTH_BUFFER_BIT or GL11C.GL_STENCIL_BUFFER_BIT)
-        if (window.isResized) {
-            GL11C.glViewport(0, 0, window.width, window.height)
-            window.isResized = false
-        }
     }
 
     override fun cleanup() {
@@ -129,6 +81,7 @@ class JackUpdater(
     }
 
     private fun initPorts() {
+        // TODO: build the port structure here.
         val ports = jack.getPorts(client, "", JackPortType.AUDIO, EnumSet.of(JackPortFlags.JackPortIsOutput))
         for (port: String in ports) {
             println("output port: $port")
@@ -137,6 +90,13 @@ class JackUpdater(
                 println(" --> $conn")
             }
         }
+    }
+
+    // This is an additional call to render the page during (e.g) window resizing. The magic is doing the swap buffer to get it to show as well
+    override fun refresh(window: Window) {
+        render(window)
+        // This causes the view to be redrawn during a window resize, without which will not paint correctly until the mouse is released.
+        GLFW.glfwSwapBuffers(window.windowHandle)
     }
 }
 

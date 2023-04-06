@@ -5,16 +5,13 @@ class Engine(
     width: Int,
     height: Int,
     vSync: Boolean,
-    private val app: LogicUpdater,
-    private val targetUPS: Int = 60
+    private val app: App,
+    private val targetUPS: Int = 60,
+    private val targetFPS: Int = 60
 ) : Runnable {
     private val window: Window = Window(windowTitle, width, height, vSync)
     private val timer: Timer = Timer()
     private val mouseInput: MouseInput = MouseInput()
-
-    companion object {
-        const val TARGET_FPS = 60
-    }
 
     override fun run() {
         try {
@@ -57,7 +54,6 @@ class Engine(
                 sync()
             }
         }
-
     }
 
     private fun input() {
@@ -66,7 +62,7 @@ class Engine(
     }
 
     private fun update(interval: Float) {
-        app.update(interval, mouseInput, window)
+        app.update(interval, window, mouseInput)
     }
 
     private fun render() {
@@ -75,7 +71,7 @@ class Engine(
     }
 
     private fun sync() {
-        val loopSlot = 1f / TARGET_FPS
+        val loopSlot = 1f / targetFPS
         val endTime = timer.lastLoopTime + loopSlot
         while (timer.time < endTime) {
             try { Thread.sleep(1) } catch (_: InterruptedException) {}
@@ -85,5 +81,4 @@ class Engine(
     private fun cleanup() {
         app.cleanup()
     }
-
 }

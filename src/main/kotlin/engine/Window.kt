@@ -1,8 +1,10 @@
 package engine
 
 import glm_.vec2.Vec2i
+import glm_.vec4.Vec4
 import imgui.ImGui
 import imgui.classes.Context
+import imgui.font.Font
 import imgui.impl.gl.ImplGL3
 import imgui.impl.glfw.ImplGlfw
 import org.lwjgl.glfw.GLFW
@@ -11,9 +13,13 @@ import org.lwjgl.glfw.GLFW.glfwGetKey
 import org.lwjgl.glfw.GLFW.glfwGetVideoMode
 import org.lwjgl.glfw.GLFW.glfwPollEvents
 import org.lwjgl.glfw.GLFW.glfwSetFramebufferSizeCallback
+import org.lwjgl.glfw.GLFW.glfwSetWindowPosCallback
+import org.lwjgl.glfw.GLFW.glfwSetWindowRefreshCallback
 import org.lwjgl.glfw.GLFW.glfwSwapBuffers
 import org.lwjgl.glfw.GLFW.glfwWindowShouldClose
 import org.lwjgl.opengl.GL.createCapabilities
+import org.lwjgl.opengl.GL11
+import org.lwjgl.opengl.GL11C
 import org.lwjgl.opengl.GL11C.GL_BLEND
 import org.lwjgl.opengl.GL11C.GL_DEPTH_TEST
 import org.lwjgl.opengl.GL11C.GL_ONE_MINUS_SRC_ALPHA
@@ -31,7 +37,8 @@ data class Window(
     val title: String,
     var width: Int,
     var height: Int,
-    private var vSync: Boolean
+    private var vSync: Boolean,
+    var backgroundColour: Vec4 = Vec4(0.45f, 0.55f, 0.6f, 1f)
 ) {
     var windowHandle: Long = 0
 
@@ -42,8 +49,13 @@ data class Window(
     lateinit var implGlfw: ImplGlfw
     lateinit var implGl3: ImplGL3
 
-    val framebufferSize: Vec2i
-        get() = window.framebufferSize
+    var windowRefreshCallback: WindowRefreshCallbackHandler = EmptyWindowRefreshCallbackHandler()
+
+    lateinit var sysDefault: Font
+    lateinit var ubuntuFont: Font
+
+    // generic background colour
+    val clearColor = Vec4(0.45f, 0.55f, 0.6f, 1f)
 
     fun initImgui() {
         glfw {
@@ -71,25 +83,21 @@ data class Window(
             isResized = true
         }
 
-//        glfwSetWindowRefreshCallback(windowHandle) {
-//            println("refresh cb")
-//            GL11C.glClear(GL11.GL_COLOR_BUFFER_BIT or GL11.GL_DEPTH_BUFFER_BIT or GL11C.GL_STENCIL_BUFFER_BIT)
-//            if (isResized) {
-//                println("setting vp with w/h: $width, $height")
-//                GL11C.glViewport(0, 0, width, height)
-//                isResized = false
-//            }
-//            implGl3.renderDrawData(ImGui.drawData!!)
-            // glfwSwapBuffers(windowHandle)
-//        }
+        // Window resizing:
+        glfwSetWindowRefreshCallback(windowHandle) { windowRefreshCallback.refresh(this) }
+        // Window moving:
+        glfwSetWindowPosCallback(windowHandle) { _, _, _ -> windowRefreshCallback.refresh(this) }
 
-        // Get the resolution of the primary monitor
+        // can also consider:
+        // glfwSetWindowSizeCallback(windowHandle) { _, _, _ -> windowRefreshCallback.refresh(this) }
+        // glfwSetFramebufferSizeCallback(windowHandle) {  _, _, _ -> windowRefreshCallback.refresh(this) }
+
+        // Center window on primary monitor
         val vidmode = glfwGetVideoMode(GLFW.glfwGetPrimaryMonitor()) ?: throw Exception("Cannot get primary monitor information")
-        // Center our window
         window.pos = Vec2i((vidmode.width() - width) / 2, (vidmode.height() - height) / 2)
 
         window.makeContextCurrent()
-        if (isVSync()) {
+        if (vSync) {
             glfw.swapInterval = VSync.ON
         }
 
@@ -102,6 +110,11 @@ data class Window(
         ImGui.styleColorsDark()
         implGlfw = ImplGlfw(window, true)
         implGl3 = ImplGL3()
+
+        with(ImGui) {
+            sysDefault = io.fonts.addFontDefault()
+            ubuntuFont = io.fonts.addFontFromFileTTF("fonts/UbuntuMono-R.ttf", 18.0f) ?: sysDefault
+        }
 
     }
 
@@ -122,10 +135,27 @@ data class Window(
         glfwPollEvents()
     }
 
+    fun clear() {
+        gln.glClearColor(clearColor)
+        GL11C.glClear(GL11.GL_COLOR_BUFFER_BIT or GL11.GL_DEPTH_BUFFER_BIT or GL11C.GL_STENCIL_BUFFER_BIT)
+        if (isResized) {
+            GL11C.glViewport(0, 0, width, height)
+            isResized = false
+        }
+    }
+
     private fun restoreState() {
         glEnable(GL_DEPTH_TEST)
         glEnable(GL_STENCIL_TEST)
         glEnable(GL_BLEND)
         glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
     }
+}
+
+interface WindowRefreshCallbackHandler {
+    fun refresh(window: Window)
+}
+
+class EmptyWindowRefreshCallbackHandler: WindowRefreshCallbackHandler {
+    override fun refresh(window: Window) {}
 }
