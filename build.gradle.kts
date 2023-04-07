@@ -18,17 +18,6 @@ plugins {
 group = "net.fish"
 version = "1.0-SNAPSHOT"
 
-//dependencyResolutionManagement {
-//repositories {
-//    mavenCentral() // or whichever repository holds your boms
-//}
-//   versionCatalogs {
-//        createWithBomSupport("libs") {
-//            fromBomAlias("springBootBom") // or use definition in toml
-//        }
-//    }
-//}
-
 repositories {
     mavenLocal()
     mavenCentral()
@@ -68,7 +57,6 @@ dependencies {
     implementation(libs.gfx.kotlin.graphics.glm)
     implementation(libs.gfx.kotlin.graphics.unocore)
     implementation(libs.gfx.joml)
-
 
     implementation(libs.gfx.imgui.core)
     implementation(libs.gfx.imgui.gl)

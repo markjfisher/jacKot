@@ -80,5 +80,6 @@ class Engine(
 
     private fun cleanup() {
         app.cleanup()
+        window.cleanup()
     }
 }

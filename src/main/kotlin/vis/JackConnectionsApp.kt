@@ -1,9 +1,10 @@
 package vis
 
 import engine.App
-import engine.WindowRefreshCallbackHandler
 import engine.MouseInput
 import engine.Window
+import engine.WindowRefreshCallbackHandler
+import glm_.vec2.Vec2
 import imgui.ImGui
 import java.util.EnumSet
 import org.jaudiolibs.jnajack.Jack
@@ -12,7 +13,6 @@ import org.jaudiolibs.jnajack.JackClient
 import org.jaudiolibs.jnajack.JackPortConnectCallback
 import org.jaudiolibs.jnajack.JackPortFlags
 import org.jaudiolibs.jnajack.JackPortRegistrationCallback
-import org.jaudiolibs.jnajack.JackPortType
 import org.jaudiolibs.jnajack.JackSampleRateCallback
 import org.jaudiolibs.jnajack.JackShutdownCallback
 import org.jaudiolibs.jnajack.JackXrunCallback
@@ -21,15 +21,13 @@ import org.lwjgl.glfw.GLFW
 class JackConnectionsApp(
     private val jack: Jack,
     private val client: JackClient
-): App, WindowRefreshCallbackHandler {
+) : App, WindowRefreshCallbackHandler {
     private val bufferSizeCallback = BufferSizeCallback()
     private val sampleRateCallback = SampeRateCallback()
     private val xRunCallback = XRunCallback()
     private val portRegistrationCallback = PortRegistrationCallback()
     private val portConnectCallback = PortConnectCallback()
     private val onShutdownCallback = OnShutdownCallback()
-
-    var counter: Int = 0
 
     override fun init(window: Window) {
         window.windowRefreshCallback = this
@@ -50,14 +48,20 @@ class JackConnectionsApp(
         window.implGl3.newFrame()
         window.implGlfw.newFrame()
 
+        val ports = mapOf(
+            "music 1" to Vec2(10f, 10f),
+            "output 1" to Vec2(500f, 150f)
+        )
+
         // Build all the connections from the captured data structure
         ImGui.run {
             newFrame()
             pushFont(window.ubuntuFont)
-            begin("A UI!!")
-            text("Hello, fish %d", counter++)
-            button("Push me if you dare")
-            end()
+
+            val portWidgets = ports.map { PortWidget(it.key, it.value).let { p -> p.invoke(); p } }
+            PortConnections(portWidgets)
+
+            popFont()
         }
 
         window.clear()
@@ -70,7 +74,6 @@ class JackConnectionsApp(
         client.close()
     }
 
-
     private fun initCallbacks() {
         client.setBuffersizeCallback(bufferSizeCallback)
         client.setSampleRateCallback(sampleRateCallback)
@@ -81,8 +84,7 @@ class JackConnectionsApp(
     }
 
     private fun initPorts() {
-        // TODO: build the port structure here.
-        val ports = jack.getPorts(client, "", JackPortType.AUDIO, EnumSet.of(JackPortFlags.JackPortIsOutput))
+        val ports = jack.getPorts(client, "", null, EnumSet.noneOf(JackPortFlags::class.java))
         for (port: String in ports) {
             println("output port: $port")
             val conns = jack.getAllConnections(client, port)

@@ -150,6 +150,14 @@ data class Window(
         glEnable(GL_BLEND)
         glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
     }
+
+    fun cleanup() {
+        implGl3.shutdown()
+        implGlfw.shutdown()
+        ctx.shutdown()
+        window.destroy()
+        glfw.terminate()
+    }
 }
 
 interface WindowRefreshCallbackHandler {
