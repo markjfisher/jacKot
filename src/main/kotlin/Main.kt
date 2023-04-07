@@ -10,12 +10,9 @@ import vis.JackConnectionsApp
 import engine.Engine
 import org.lwjgl.system.Configuration
 
-fun main(args: Array<String>) {
+fun main() {
     SLF4JBridgeHandler.removeHandlersForRootLogger()
     SLF4JBridgeHandler.install()
-
-    // Try adding program arguments via Run/Debug configuration.
-    // Learn more about running applications: https://www.jetbrains.com/help/idea/running-applications.html.
 
     val lib = "JACK"
 
@@ -33,10 +30,12 @@ fun main(args: Array<String>) {
     val jack = Jack.getInstance()
     val options = EnumSet.of(JackOptions.JackNoStartServer)
     val status = EnumSet.noneOf(JackStatus::class.java)
-    val client = jack.openClient("jacKot test 2", options, status)
+    val client = jack.openClient("jacKot client", options, status)
     val app: App = JackConnectionsApp(jack, client)
 
+    // Turn off gfx debug globally
     imgui.DEBUG = false
     Configuration.DEBUG.set(false)
-    Engine("jacKot", 1200, 800, true, app = app).run()
+
+    Engine("jacKot", 1200, 800, true, app).run()
 }
